@@ -1,0 +1,99 @@
+:root {
+    --primary-color: #9c6dff;
+    --secondary-color: #c7a1ff;
+    --dark-purple: #7a4dcc;
+    --light-purple: #e6d6ff;
+    --text-color: #333;
+    --light-text: #f8f8f8;
+    --shadow: 0 4px 12px rgba(156, 109, 255, 0.2);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Poppins', sans-serif, Arial;
+    color: var(--text-color);
+    background-color: #f9f5ff;
+    line-height: 1.6;
+}
+
+.container { max-width: 600px; margin: 0 auto; padding: 0 20px; }
+
+header {
+    background: linear-gradient(135deg, var(--primary-color), var(--dark-purple));
+    color: var(--light-text);
+    padding: 20px 0;
+    box-shadow: var(--shadow);
+}
+
+.header-container { display: flex; justify-content: space-between; align-items: center; }
+
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon i { font-size: 2rem; color: #ff0066; }
+.logo-text h1 { font-size: 1.5rem; font-weight: 700; }
+
+nav ul { display: flex; list-style: none; gap: 20px; }
+nav a { color: var(--light-text); text-decoration: none; font-weight: 500; display: flex; align-items: center; gap: 5px; }
+
+.main-content { padding: 30px 0; }
+
+.card {
+    background-color: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: var(--shadow);
+    margin-bottom: 25px;
+}
+
+.card h2 {
+    color: var(--dark-purple);
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    display: flex; align-items: center; gap: 10px;
+}
+
+.motivation-card {
+    background: linear-gradient(135deg, var(--light-purple), white);
+    border-left: 5px solid #ff0066;
+    text-align: center;
+}
+
+.quote { font-size: 1.2rem; font-style: italic; margin-bottom: 10px; color: var(--dark-purple); }
+.author { font-weight: 600; color: var(--primary-color); margin-bottom: 15px; }
+
+.suggestion {
+    background-color: rgba(156, 109, 255, 0.1);
+    padding: 12px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+}
+
+.btn-action {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    transition: 0.3s;
+}
+
+.btn-action:hover { background-color: var(--dark-purple); }
+
+.time-input-group { display: flex; gap: 10px; margin-top: 10px; }
+
+input[type="time"] {
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--secondary-color);
+    flex: 1;
+}
+
+footer { text-align: center; padding: 20px; font-size: 0.8rem; color: var(--dark-purple); }

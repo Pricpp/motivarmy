@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotivArmy - BTS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-heartbeat"></i></div>
+                <div class="logo-text"><h1>MotivArmy</h1></div>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#"><i class="fas fa-home"></i> Início</a></li>
+                    <li><a href="https://open.spotify.com" target="_blank"><i class="fab fa-spotify"></i> Spotify</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            
+            <div class="card motivation-card">
+                <h2><i class="fas fa-quote-left"></i> Motivação do Dia</h2>
+                <div class="quote" id="daily-quote">"Acredite em si mesmo e continue seguindo em frente."</div>
+                <div class="author" id="quote-author">— RM, BTS</div>
+                
+                <div class="suggestion">
+                    <i class="fas fa-headphones"></i> 
+                    <strong>Sugestão:</strong> <span id="daily-song">Yet To Come</span>
+                </div>
+                
+                <button id="new-quote-btn" class="btn-action">
+                    <i class="fas fa-sync-alt"></i> Nova Mensagem
+                </button>
+            </div>
+
+            <div class="card">
+                <h2><i class="fas fa-clock"></i> Programar Mensagem</h2>
+                <p style="font-size: 0.9rem;">Receba uma notificação no horário escolhido:</p>
+                <div class="time-input-group">
+                    <input type="time" id="schedule-time" value="08:00">
+                    <button id="save-alarm-btn" class="btn-action">
+                        <i class="fas fa-bell"></i> Ativar
+                    </button>
+                </div>
+                <p id="alarm-status" style="font-size: 0.8rem; margin-top: 10px; color: var(--dark-purple); text-align: center;"></p>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>Borahae!💜</p>
+        <p>@Todos os direitos reservados. App criado por uma Army, inspirado por Bts.</p><p>2026♡</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js');
+      }
+    </script>
+</body>
+</html>
