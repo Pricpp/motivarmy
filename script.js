@@ -1,39 +1,58 @@
-const btsQuotes = [
-    { quote: "Nunca desista, não importa o quão difícil seja.", author: "RM", song: "Yet To Come" },
-    { quote: "Sonhe alto. Se você não sonhar, nada vai acontecer.", author: "Suga", song: "Dream Glow" },
-    { quote: "Amar a si mesmo é o começo de um romance eterno.", author: "RM", song: "Answer: Love Myself" },
-    { quote: "Mesmo quando cai e me machuco, continuo seguindo.", author: "J-Hope", song: "Intro: Boy Meets Evil" },
-    { quote: "A vida é uma montanha-russa, aproveite o passeio.", author: "V", song: "00:00 (Zero O'Clock)" },
-    { quote: "Apague todas as memórias tristes. Segure as mãos um do outro e sorria.", author: "BTS", song: "2! 3!" }
-];
+// COLE O SEU LINK DO GOOGLE SHEETS (CSV) ABAIXO
+const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfxrMh-wN-i4pzz1DpwS16F2WiCFc/export?format=csv.";
 
-const dailyQuoteEl = document.getElementById('daily-quote');
-const quoteAuthorEl = document.getElementById('quote-author');
-const dailySongEl = document.getElementById('daily-song');
-const newQuoteBtn = document.getElementById('new-quote-btn');
-const saveAlarmBtn = document.getElementById('save-alarm-btn');
-const scheduleTimeInput = document.getElementById('schedule-time');
-const alarmStatus = document.getElementById('alarm-status');
+let btsQuotes = [];
 
-function generateNewMessage() {
-    const randomIndex = Math.floor(Math.random() * btsQuotes.length);
-    const item = btsQuotes[randomIndex];
-    dailyQuoteEl.textContent = `"${item.quote}"`;
-    quoteAuthorEl.textContent = `— ${item.author}, BTS`;
-    dailySongEl.textContent = item.song;
-    return item;
+async function carregarFrases() {
+    try {
+        const response = await fetch(LINK_PLANILHA);
+        const data = await response.text();
+        
+        // Divide as linhas da planilha
+        const linhas = data.split(/\r?\n/).slice(1); 
+        
+        btsQuotes = linhas.map(linha => {
+            // Divide por vírgula, mas lida com frases que podem ter vírgulas dentro
+            const colunas = linha.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+            if (colunas && colunas.length >= 3) {
+                return {
+                    quote: colunas[0].replace(/"/g, ""),
+                    author: colunas[1].replace(/"/g, ""),
+                    song: colunas[2].replace(/"/g, "")
+                };
+            }
+            return null;
+        }).filter(item => item !== null);
+
+        generateNewMessage();
+    } catch (error) {
+        console.error("Erro ao carregar frases:", error);
+    }
 }
 
-saveAlarmBtn.addEventListener('click', () => {
+function generateNewMessage() {
+    if (btsQuotes.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * btsQuotes.length);
+    const item = btsQuotes[randomIndex];
+    
+    document.getElementById('daily-quote').textContent = `"${item.quote.trim()}"`;
+    document.getElementById('quote-author').textContent = `— ${item.author.trim()}, BTS`;
+    document.getElementById('daily-song').textContent = item.song.trim();
+}
+
+// Configura o botão de nova mensagem
+document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
+
+// Configura o alarme/notificação
+document.getElementById('save-alarm-btn').addEventListener('click', () => {
     if (!("Notification" in window)) {
-        alert("Navegador sem suporte a notificações.");
+        alert("Notificações não suportadas.");
         return;
     }
-
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
-            const time = scheduleTimeInput.value;
-            alarmStatus.textContent = `Notificação ativa para às ${time}! 💜`;
+            const time = document.getElementById('schedule-time').value;
+            document.getElementById('alarm-status').textContent = `Ativado para às ${time} 💜`;
             
             setInterval(() => {
                 const now = new Date();
@@ -41,7 +60,7 @@ saveAlarmBtn.addEventListener('click', () => {
                 if (currentTime === time) {
                     const msg = btsQuotes[Math.floor(Math.random() * btsQuotes.length)];
                     new Notification("MotivArmy 💜", {
-                        body: `"${msg.quote}" - Escute ${msg.song}!`,
+                        body: `${msg.quote} - Ouça ${msg.song}`,
                         icon: "icon.png"
                     });
                 }
@@ -50,4 +69,5 @@ saveAlarmBtn.addEventListener('click', () => {
     });
 });
 
-newQuoteBtn.addEventListener('click', generateNewMessage);
+// Inicia o carregamento da planilha
+carregarFrases();
