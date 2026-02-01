@@ -1,5 +1,4 @@
-// COLE O SEU LINK DO GOOGLE SHEETS (CSV) ABAIXO
-const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfxrMh-wN-i4pzz1DpwS16F2WiCFc/export?format=csv.";
+const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfxrMh-wN-i4pzz1DpwS16F2WiCFc/export?format=csv";
 
 let btsQuotes = [];
 
@@ -8,22 +7,24 @@ async function carregarFrases() {
         const response = await fetch(LINK_PLANILHA);
         const data = await response.text();
         
-        // Divide as linhas da planilha
-        const linhas = data.split(/\r?\n/).slice(1); 
+        // Divide o texto em linhas e remove espaços em branco
+        const linhas = data.split(/\r?\n/).filter(linha => linha.trim() !== "");
         
-        btsQuotes = linhas.map(linha => {
-            // Divide por vírgula, mas lida com frases que podem ter vírgulas dentro
-            const colunas = linha.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
-            if (colunas && colunas.length >= 3) {
+        // Pula a primeira linha (cabeçalho) e processa o restante
+        btsQuotes = linhas.slice(1).map(linha => {
+            // Divide por vírgula, mas lida com textos entre aspas
+            const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            if (colunas.length >= 3) {
                 return {
-                    quote: colunas[0].replace(/"/g, ""),
-                    author: colunas[1].replace(/"/g, ""),
-                    song: colunas[2].replace(/"/g, "")
+                    quote: colunas[0].replace(/"/g, "").trim(),
+                    author: colunas[1].replace(/"/g, "").trim(),
+                    song: colunas[2].replace(/"/g, "").trim()
                 };
             }
             return null;
         }).filter(item => item !== null);
 
+        console.log("Frases carregadas:", btsQuotes.length);
         generateNewMessage();
     } catch (error) {
         console.error("Erro ao carregar frases:", error);
@@ -31,24 +32,29 @@ async function carregarFrases() {
 }
 
 function generateNewMessage() {
-    if (btsQuotes.length === 0) return;
+    if (btsQuotes.length === 0) {
+        console.log("Nenhuma frase disponível ainda.");
+        return;
+    }
+    
     const randomIndex = Math.floor(Math.random() * btsQuotes.length);
     const item = btsQuotes[randomIndex];
     
-    document.getElementById('daily-quote').textContent = `"${item.quote.trim()}"`;
-    document.getElementById('quote-author').textContent = `— ${item.author.trim()}, BTS`;
-    document.getElementById('daily-song').textContent = item.song.trim();
+    document.getElementById('daily-quote').textContent = `"${item.quote}"`;
+    document.getElementById('quote-author').textContent = `— ${item.author}, BTS`;
+    document.getElementById('daily-song').textContent = item.song;
 }
 
-// Configura o botão de nova mensagem
+// Evento do botão de nova mensagem
 document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
 
-// Configura o alarme/notificação
+// Evento do Alarme/Notificação
 document.getElementById('save-alarm-btn').addEventListener('click', () => {
     if (!("Notification" in window)) {
-        alert("Notificações não suportadas.");
+        alert("Notificações não suportadas neste navegador.");
         return;
     }
+
     Notification.requestPermission().then(permission => {
         if (permission === "granted") {
             const time = document.getElementById('schedule-time').value;
@@ -60,7 +66,7 @@ document.getElementById('save-alarm-btn').addEventListener('click', () => {
                 if (currentTime === time) {
                     const msg = btsQuotes[Math.floor(Math.random() * btsQuotes.length)];
                     new Notification("MotivArmy 💜", {
-                        body: `${msg.quote} - Ouça ${msg.song}`,
+                        body: `"${msg.quote}" - Ouça ${msg.song}`,
                         icon: "icon.png"
                     });
                 }
@@ -69,5 +75,5 @@ document.getElementById('save-alarm-btn').addEventListener('click', () => {
     });
 });
 
-// Inicia o carregamento da planilha
+// Carrega as frases assim que o app abre
 carregarFrases();
