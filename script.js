@@ -2,54 +2,75 @@ const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfx
 let btsQuotes = [];
 
 async function carregarFrases() {
-    try {
-        const response = await fetch(LINK_PLANILHA);
-        const data = await response.text();
-        const linhas = data.split(/\r?\n/).filter(l => l.trim() !== "");
-        btsQuotes = linhas.slice(1).map(linha => {
-            const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-            return {
-                quote: colunas[0]?.replace(/"/g, "").trim(),
-                author: colunas[1]?.replace(/"/g, "").trim(),
-                song: colunas[2]?.replace(/"/g, "").trim()
-            };
-        }).filter(i => i !== null);
-        if (btsQuotes.length > 0) generateNewMessage();
-    } catch (e) { console.error(e); }
+  const response = await fetch(LINK_PLANILHA);
+  const data = await response.text();
+  const linhas = data.split(/\r?\n/).filter(l => l.trim() !== "");
+  btsQuotes = linhas.slice(1).map(linha => {
+    const colunas = linha.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+    return {
+      quote: colunas[0]?.replace(/"/g, "").trim(),
+      author: colunas[1]?.replace(/"/g, "").trim(),
+      song: colunas[2]?.replace(/"/g, "").trim()
+    };
+  });
 }
 
-function generateNewMessage() {
-    if (btsQuotes.length === 0) return;
-    const item = btsQuotes[Math.floor(Math.random() * btsQuotes.length)];
-    document.getElementById('daily-quote').textContent = `"${item.quote}"`;
-    document.getElementById('quote-author').textContent = `— ${item.author}, BTS`;
-    document.getElementById('daily-song').textContent = item.song;
+async function registrarServiceWorker() {
+  if ("serviceWorker" in navigator) {
+    const reg = await navigator.serviceWorker.register("sw.js");
+    return reg;
+  }
 }
 
-document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
+async function salvarHorario(time) {
+  localStorage.setItem("horarioNotificacao", time);
+}
 
-document.getElementById('save-alarm-btn').addEventListener('click', () => {
-    Notification.requestPermission().then(permission => {
-        if (permission === "granted") {
-            const time = document.getElementById('schedule-time').value;
-            const msg = btsQuotes[Math.floor(Math.random() * btsQuotes.length)] || {quote: "Avante!", song: "BTS"};
-            
-            document.getElementById('alarm-status').textContent = `Alerta para às ${time} 💜`;
+function carregarHorario() {
+  return localStorage.getItem("horarioNotificacao");
+}
 
-            // Manda o horário e a frase para o Service Worker
-            if (navigator.serviceWorker.controller) {
-                navigator.serviceWorker.controller.postMessage({
-                    type: 'SCHEDULE_NOTIFICATION',
-                    time: time,
-                    quote: msg.quote,
-                    song: msg.song
-                });
-                alert("Alarme agendado!");
-            }
-        } else {
-            alert("Ative as notificações nas configurações do Chrome!");
-        }
-    });
+function proximoHorario(time) {
+  const [h, m] = time.split(":").map(Number);
+  const agora = new Date();
+  const alvo = new Date();
+  alvo.setHours(h, m, 0, 0);
+  if (alvo <= agora) alvo.setDate(alvo.getDate() + 1);
+  return alvo;
+}
+
+async function agendarNotificacao(time) {
+  const reg = await registrarServiceWorker();
+  const msg = btsQuotes[Math.floor(Math.random() * btsQuotes.length)];
+  const data = proximoHorario(time);
+
+  await reg.showNotification("MotivArmy 💜", {
+    body: `"${msg.quote}" — Ouça ${msg.song}`,
+    icon: "icon.png",
+    badge: "icon.png",
+    tag: "motivarmy",
+    showTrigger: new TimestampTrigger(data.getTime()),
+    data: { time }
+  });
+}
+
+document.getElementById("setAlarmBtn").addEventListener("click", async () => {
+  const time = document.getElementById("alarmTime").value;
+  if (!time) return alert("Escolha um horário!");
+
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") return alert("Ative as notificações!");
+
+  await salvarHorario(time);
+  await agendarNotificacao(time);
+  alert("Notificação agendada com sucesso!");
 });
 
-carregarFrases();
+window.onload = async () => {
+  await carregarFrases();
+  const salvo = carregarHorario();
+  if (salvo) {
+    document.getElementById("alarmTime").value = salvo;
+    await agendarNotificacao(salvo);
+  }
+};
