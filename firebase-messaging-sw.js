@@ -10,11 +10,27 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-messaging.onBackgroundMessage((payload) => {
-    const notificationTitle = payload.notification.title;
-    const notificationOptions = {
-        body: payload.notification.body,
-        icon: 'icon.png'
-    };
-    self.registration.showNotification(notificationTitle, notificationOptions);
+// Lógica para verificar o horário e mandar notificação local
+let alarmTime = null;
+
+self.addEventListener('message', (event) => {
+    if (event.data.type === 'SET_ALARM') {
+        alarmTime = event.data.time;
+    }
 });
+
+// Verifica a cada minuto se é hora de mandar a mensagem
+setInterval(() => {
+    if (!alarmTime) return;
+
+    const agora = new Date();
+    const horaAtual = `${agora.getHours().toString().padStart(2, '0')}:${agora.getMinutes().toString().padStart(2, '0')}`;
+
+    if (horaAtual === alarmTime) {
+        self.registration.showNotification('MotivArmy 💜', {
+            body: 'Hora de brilhar! Confira sua frase motivacional do BTS no app.',
+            icon: 'icon.png',
+            tag: 'daily-alarm' // Evita notificações duplicadas no mesmo minuto
+        });
+    }
+}, 60000); // Checa a cada 60 segundos
