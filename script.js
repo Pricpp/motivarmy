@@ -82,3 +82,4 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
     document.getElementById('save-alarm-btn').addEventListener('click', ativarNotificacoes);
 });
+
