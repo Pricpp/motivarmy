@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
-// Configuração do seu Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyB8cfcxxPVCaL0JzqvBLQYcnILsHsyGVhc",
     authDomain: "motivarmy-53e34.firebaseapp.com",
@@ -12,11 +11,10 @@ const firebaseConfig = {
     measurementId: "G-HB2R3MGFLV"
 };
 
-// Inicialização
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// --- LÓGICA DA PLANILHA (BTS) ---
+// --- LÓGICA DA PLANILHA ---
 const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfxrMh-wN-i4pzz1DpwS16F2WiCFc/export?format=csv";
 let btsQuotes = [];
 
@@ -34,7 +32,7 @@ async function carregarFrases() {
             };
         }).filter(i => i.quote);
         if (btsQuotes.length > 0) generateNewMessage();
-    } catch (e) { console.error("Erro na planilha:", e); }
+    } catch (e) { console.error("Erro planilha:", e); }
 }
 
 function generateNewMessage() {
@@ -45,54 +43,42 @@ function generateNewMessage() {
     document.getElementById('daily-song').textContent = item.song;
 }
 
-// --- CONFIGURAÇÃO DOS BOTÕES E NOTIFICAÇÃO ---
+// --- ATIVAÇÃO DO ALARME ---
+async function ativarNotificacoes() {
+    const timeValue = document.getElementById('alarm-time').value;
+    if (!timeValue) {
+        alert("Escolha um horário primeiro!");
+        return;
+    }
+
+    try {
+        const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+        const permission = await Notification.requestPermission();
+        
+        if (permission === 'granted') {
+            await navigator.serviceWorker.ready;
+            
+            // Força a ativação do controlador se ele for nulo
+            if (!navigator.serviceWorker.controller) {
+                window.location.reload();
+                return;
+            }
+
+            navigator.serviceWorker.controller.postMessage({
+                type: 'SET_ALARM',
+                time: timeValue
+            });
+
+            document.getElementById('alarm-status').textContent = `Alarme para às ${timeValue}! 💜`;
+            alert(`Sucesso! Notificação diária às ${timeValue}.`);
+        }
+    } catch (err) {
+        alert("Erro ao conectar. Tente atualizar a página.");
+    }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     carregarFrases();
-
-    // Botão de Nova Mensagem
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
-
-    // Botão de Ativar/Salvar Alarme
-    document.getElementById('save-alarm-btn').addEventListener('click', async () => {
-        const timeValue = document.getElementById('alarm-time').value;
-        
-        if (!timeValue) {
-            alert("Por favor, escolha um horário primeiro!");
-            return;
-        }
-
-        try {
-            // Registra o Service Worker
-            const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
-            
-            // Pede permissão
-            const permission = await Notification.requestPermission();
-            
-            if (permission === 'granted') {
-                // AGUARDA o Service Worker ficar ativo antes de enviar o postMessage
-                await navigator.serviceWorker.ready;
-
-                if (navigator.serviceWorker.controller) {
-                    navigator.serviceWorker.controller.postMessage({
-                        type: 'SET_ALARM',
-                        time: timeValue
-                    });
-
-                    document.getElementById('alarm-status').textContent = `Alarme definido para às ${timeValue}! 💜`;
-                    alert(`Sucesso! Você receberá uma motivação todo dia às ${timeValue}.`);
-                } else {
-                    // Se não houver controlador (comum no primeiro acesso), recarrega para ativar
-                    window.location.reload();
-                }
-            }
-        } catch (err) {
-            console.error('Erro ao configurar alarme:', err);
-            alert("Erro técnico. Tente atualizar a página.");
-        }
-    });
-});
-
-// Escuta mensagens do Firebase com o app aberto
-onMessage(messaging, (payload) => {
-    alert(`💜 BTS diz: ${payload.notification.body}`);
+    document.getElementById('save-alarm-btn').addEventListener('click', ativarNotificacoes);
 });
