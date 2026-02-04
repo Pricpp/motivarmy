@@ -43,38 +43,44 @@ function generateNewMessage() {
     document.getElementById('daily-song').textContent = item.song;
 }
 
-// --- FUNÇÃO DO BOTÃO ATIVAR ---
-async function configurarAlarme() {
-    const timeValue = document.getElementById('alarm-time').value;
+// --- FUNÇÃO DO BOTÃO ATIVAR (DISPONÍVEL PARA O HTML) ---
+window.configurarAlarme = async function() {
+    const timeInput = document.getElementById('alarm-time');
+    if (!timeInput) {
+        alert("Erro: Campo de hora não encontrado!");
+        return;
+    }
+    
+    const timeValue = timeInput.value;
     if (!timeValue) {
         alert("Escolha um horário primeiro!");
         return;
     }
 
     try {
-        // Pede permissão primeiro
         const permission = await Notification.requestPermission();
-        
         if (permission === 'granted') {
-            // Regista o Service Worker
             await navigator.serviceWorker.register('firebase-messaging-sw.js');
             
-            // GUARDA O HORÁRIO NO NAVEGADOR (Isto não falha!)
-            localStorage.setItem('motivarmy_alarm_time', timeValue);
+            const token = await getToken(messaging, { 
+                vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A' 
+            });
 
-            document.getElementById('alarm-status').textContent = `Alarme definido para às ${timeValue}! 💜`;
-            alert(`Sucesso! Notificação diária ativada para as ${timeValue}.`);
+            if (token) {
+                localStorage.setItem('motivarmy_alarm_time', timeValue);
+                document.getElementById('alarm-status').textContent = `Conectado! Alarme às ${timeValue} 💜`;
+                alert("Sucesso! O MotivArmy está pronto para te motivar.");
+            }
         } else {
-            alert("Precisas de permitir as notificações nas definições do Chrome.");
+            alert("Você precisa permitir as notificações no navegador!");
         }
     } catch (err) {
         console.error(err);
-        alert("Erro ao ativar. Tenta atualizar a página.");
+        alert("Erro ao ativar. Tente atualizar a página.");
     }
-}
+};
 
 window.addEventListener('DOMContentLoaded', () => {
     carregarFrases();
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
-    document.getElementById('save-alarm-btn').addEventListener('click', configurarAlarme);
 });
