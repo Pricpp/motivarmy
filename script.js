@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
-// Suas configurações do Firebase
+// Configuração do seu Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyB8cfcxxPVCaL0JzqvBLQYcnILsHsyGVhc",
     authDomain: "motivarmy-53e34.firebaseapp.com",
@@ -32,9 +32,9 @@ async function carregarFrases() {
                 author: colunas[1]?.replace(/"/g, "").trim(),
                 song: colunas[2]?.replace(/"/g, "").trim()
             };
-        }).filter(i => i !== null);
+        }).filter(i => i.quote);
         if (btsQuotes.length > 0) generateNewMessage();
-    } catch (e) { console.error("Erro planilha:", e); }
+    } catch (e) { console.error("Erro na planilha:", e); }
 }
 
 function generateNewMessage() {
@@ -45,24 +45,37 @@ function generateNewMessage() {
     document.getElementById('daily-song').textContent = item.song;
 }
 
-document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
+// --- CONFIGURAÇÃO DOS BOTÕES E NOTIFICAÇÃO ---
+window.addEventListener('DOMContentLoaded', () => {
+    carregarFrases();
 
-// --- LÓGICA DE NOTIFICAÇÃO PUSH ---
-document.getElementById('save-alarm-btn').addEventListener('click', async () => {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-        try {
-            // Isso gera um "endereço" único para o seu celular receber mensagens
-            const currentToken = await getToken(messaging, { vapidKey:'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A });
-            if (currentToken) {
-                console.log("Token:", currentToken);
-                document.getElementById('alarm-status').textContent = "Notificações Reais Ativadas! 💜";
-                alert("Pronto! Agora o Firebase pode te enviar mensagens.");
+    // Botão de Nova Mensagem
+    document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
+
+    // Botão de Ativar Notificações Push
+    document.getElementById('save-alarm-btn').addEventListener('click', async () => {
+        const permission = await Notification.requestPermission();
+        if (permission === 'granted') {
+            try {
+                const currentToken = await getToken(messaging, { 
+                    vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A' 
+                });
+                if (currentToken) {
+                    console.log("Token gerado:", currentToken);
+                    document.getElementById('alarm-status').textContent = "Notificações Reais Ativadas! 💜";
+                    alert("Pronto! Agora o Firebase pode te enviar mensagens.");
+                }
+            } catch (err) {
+                console.error('Erro ao obter token:', err);
+                alert("Erro ao conectar com Firebase. Verifique o console.");
             }
-        } catch (err) {
-            console.log('Erro ao obter token:', err);
+        } else {
+            alert("Você precisa permitir as notificações!");
         }
-    }
+    });
 });
 
-carregarFrases();
+// Escuta mensagens com o app aberto
+onMessage(messaging, (payload) => {
+    alert(`💜 BTS diz: ${payload.notification.body}`);
+});
