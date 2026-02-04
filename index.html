@@ -21,7 +21,7 @@
             <nav>
                 <ul>
                     <li><a href="#"><i class="fas fa-home"></i> Início</a></li>
-                    <li><a href="https://open.spotify.com" target="_blank"><i class="fab fa-spotify"></i> Spotify</a></li>
+                    <li><a href="https://open.spotify.com/artist/3Nrfpe0tUJiS7vYhZ6ou6f" target="_blank"><i class="fab fa-spotify"></i> Spotify</a></li>
                 </ul>
             </nav>
         </div>
@@ -45,31 +45,27 @@
                 </button>
             </div>
 
-            <div class="card">
+           <div class="card">
                 <h2><i class="fas fa-clock"></i> Programar Mensagem</h2>
                 <p style="font-size: 0.9rem;">Receba uma notificação no horário escolhido:</p>
                 <div class="time-input-group">
-                    <input type="time" id="schedule-time" value="08:00">
-                    <button id="save-alarm-btn" class="btn-action">
+                    <input type="time" id="alarm-time" value="08:00">
+                    <button id="save-alarm-btn" onclick="configurarAlarme()">
                         <i class="fas fa-bell"></i> Ativar
                     </button>
                 </div>
-                <p id="alarm-status" style="font-size: 0.8rem; margin-top: 10px; color: var(--dark-purple); text-align: center;"></p>
+                <p id="alarm-status" style="font-size: 0.8rem; margin-top: 10px; color: var(--dark-purple)"></p>
             </div>
-
+ 
         </div>
     </div>
 
     <footer>
         <p>Borahae!💜</p>
-        <p>@Todos os direitos reservados. App criado por uma Army, inspirado por Bts.</p><p>2026♡</p>
+        <p>@Todos os direitos reservados. App criado por uma Army, inspirado por Bts.</p>
+        <p>2026♡</p>
     </footer>
 
     <script type="module" src="script.js"></script>
-    <script>
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js');
-      }
-    </script>
 </body>
 </html>
