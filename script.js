@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
+// Configuração do Firebase (Tuas chaves oficiais)
 const firebaseConfig = {
     apiKey: "AIzaSyB8cfcxxPVCaL0JzqvBLQYcnILsHsyGVhc",
     authDomain: "motivarmy-53e34.firebaseapp.com",
@@ -14,7 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// --- LÓGICA DA PLANILHA ---
+// --- LÓGICA DA PLANILHA GOOGLE ---
 const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfxrMh-wN-i4pzz1DpwS16F2WiCFc/export?format=csv";
 let btsQuotes = [];
 
@@ -43,43 +44,44 @@ function generateNewMessage() {
     document.getElementById('daily-song').textContent = item.song;
 }
 
-// --- FUNÇÃO DO BOTÃO ATIVAR (DISPONÍVEL PARA O HTML) ---
+// --- FUNÇÃO GLOBAL DO BOTÃO (O SEGREDO PARA FUNCIONAR) ---
 window.configurarAlarme = async function() {
     const timeInput = document.getElementById('alarm-time');
-    if (!timeInput) {
-        alert("Erro: Campo de hora não encontrado!");
-        return;
-    }
-    
-    const timeValue = timeInput.value;
+    const timeValue = timeInput ? timeInput.value : null;
+
     if (!timeValue) {
-        alert("Escolha um horário primeiro!");
+        alert("Por favor, escolhe um horário primeiro!");
         return;
     }
 
     try {
+        // Pede permissão para notificações
         const permission = await Notification.requestPermission();
+        
         if (permission === 'granted') {
+            // Regista o Service Worker para o Firebase
             await navigator.serviceWorker.register('firebase-messaging-sw.js');
             
+            // Obtém o Token de registo
             const token = await getToken(messaging, { 
                 vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A' 
             });
 
             if (token) {
                 localStorage.setItem('motivarmy_alarm_time', timeValue);
-                document.getElementById('alarm-status').textContent = `Conectado! Alarme às ${timeValue} 💜`;
+                document.getElementById('alarm-status').textContent = `Conectado! Notificações às ${timeValue} 💜`;
                 alert("Sucesso! O MotivArmy está pronto para te motivar.");
             }
         } else {
-            alert("Você precisa permitir as notificações no navegador!");
+            alert("Precisas de permitir as notificações no navegador!");
         }
     } catch (err) {
-        console.error(err);
-        alert("Erro ao ativar. Tente atualizar a página.");
+        console.error("Erro técnico:", err);
+        alert("Quase lá! Atualiza a página e tenta clicar no botão novamente.");
     }
 };
 
+// Inicialização ao carregar a página
 window.addEventListener('DOMContentLoaded', () => {
     carregarFrases();
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
