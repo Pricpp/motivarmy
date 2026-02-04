@@ -43,8 +43,8 @@ function generateNewMessage() {
     document.getElementById('daily-song').textContent = item.song;
 }
 
-// --- ATIVAÇÃO DO ALARME ---
-async function ativarNotificacoes() {
+// --- FUNÇÃO DO BOTÃO ATIVAR ---
+async function configurarAlarme() {
     const timeValue = document.getElementById('alarm-time').value;
     if (!timeValue) {
         alert("Escolha um horário primeiro!");
@@ -52,34 +52,29 @@ async function ativarNotificacoes() {
     }
 
     try {
-        const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+        // Pede permissão primeiro
         const permission = await Notification.requestPermission();
         
         if (permission === 'granted') {
-            await navigator.serviceWorker.ready;
+            // Regista o Service Worker
+            await navigator.serviceWorker.register('firebase-messaging-sw.js');
             
-            // Força a ativação do controlador se ele for nulo
-            if (!navigator.serviceWorker.controller) {
-                window.location.reload();
-                return;
-            }
+            // GUARDA O HORÁRIO NO NAVEGADOR (Isto não falha!)
+            localStorage.setItem('motivarmy_alarm_time', timeValue);
 
-            navigator.serviceWorker.controller.postMessage({
-                type: 'SET_ALARM',
-                time: timeValue
-            });
-
-            document.getElementById('alarm-status').textContent = `Alarme para às ${timeValue}! 💜`;
-            alert(`Sucesso! Notificação diária às ${timeValue}.`);
+            document.getElementById('alarm-status').textContent = `Alarme definido para às ${timeValue}! 💜`;
+            alert(`Sucesso! Notificação diária ativada para as ${timeValue}.`);
+        } else {
+            alert("Precisas de permitir as notificações nas definições do Chrome.");
         }
     } catch (err) {
-        alert("Erro ao conectar. Tente atualizar a página.");
+        console.error(err);
+        alert("Erro ao ativar. Tenta atualizar a página.");
     }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     carregarFrases();
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
-    document.getElementById('save-alarm-btn').addEventListener('click', ativarNotificacoes);
+    document.getElementById('save-alarm-btn').addEventListener('click', configurarAlarme);
 });
-
