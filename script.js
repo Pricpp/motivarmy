@@ -1,7 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
 
-// Configuração do Firebase (Tuas chaves oficiais)
 const firebaseConfig = {
     apiKey: "AIzaSyB8cfcxxPVCaL0JzqvBLQYcnILsHsyGVhc",
     authDomain: "motivarmy-53e34.firebaseapp.com",
@@ -15,7 +14,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
-// --- LÓGICA DA PLANILHA GOOGLE ---
+// --- LÓGICA DA PLANILHA ---
 const LINK_PLANILHA = "https://docs.google.com/spreadsheets/d/1C7YXElLIQZftsSqfxrMh-wN-i4pzz1DpwS16F2WiCFc/export?format=csv";
 let btsQuotes = [];
 
@@ -44,44 +43,41 @@ function generateNewMessage() {
     document.getElementById('daily-song').textContent = item.song;
 }
 
-// --- FUNÇÃO GLOBAL DO BOTÃO (O SEGREDO PARA FUNCIONAR) ---
+// --- ESSA É A FUNÇÃO QUE O BOTÃO CHAMA ---
+// Tornamos ela global para o HTML encontrar
 window.configurarAlarme = async function() {
     const timeInput = document.getElementById('alarm-time');
     const timeValue = timeInput ? timeInput.value : null;
 
     if (!timeValue) {
-        alert("Por favor, escolhe um horário primeiro!");
+        alert("Escolha um horário primeiro!");
         return;
     }
 
     try {
-        // Pede permissão para notificações
         const permission = await Notification.requestPermission();
         
         if (permission === 'granted') {
-            // Regista o Service Worker para o Firebase
             await navigator.serviceWorker.register('firebase-messaging-sw.js');
             
-            // Obtém o Token de registo
             const token = await getToken(messaging, { 
                 vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A' 
             });
 
             if (token) {
                 localStorage.setItem('motivarmy_alarm_time', timeValue);
-                document.getElementById('alarm-status').textContent = `Conectado! Notificações às ${timeValue} 💜`;
-                alert("Sucesso! O MotivArmy está pronto para te motivar.");
+                document.getElementById('alarm-status').textContent = `Conectado! Alarme às ${timeValue} 💜`;
+                alert("Sucesso! Agora o MotivArmy vai te enviar notificações.");
             }
         } else {
-            alert("Precisas de permitir as notificações no navegador!");
+            alert("Você precisa permitir as notificações!");
         }
     } catch (err) {
-        console.error("Erro técnico:", err);
-        alert("Quase lá! Atualiza a página e tenta clicar no botão novamente.");
+        console.error("Erro:", err);
+        alert("Ocorreu um erro. Tente atualizar a página.");
     }
 };
 
-// Inicialização ao carregar a página
 window.addEventListener('DOMContentLoaded', () => {
     carregarFrases();
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
