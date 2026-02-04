@@ -53,7 +53,7 @@ document.getElementById('save-alarm-btn').addEventListener('click', async () => 
     if (permission === 'granted') {
         try {
             // Isso gera um "endereço" único para o seu celular receber mensagens
-            const currentToken = await getToken(messaging, { vapidKey: 'ADICIONE_SUA_CHAVE_VAPID_AQUI' });
+            const currentToken = await getToken(messaging, { vapidKey:'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A });
             if (currentToken) {
                 console.log("Token:", currentToken);
                 document.getElementById('alarm-status').textContent = "Notificações Reais Ativadas! 💜";
