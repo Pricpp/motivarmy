@@ -52,36 +52,47 @@ window.addEventListener('DOMContentLoaded', () => {
     // Botão de Nova Mensagem
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
 
-    // Botão de Ativar Notificações Push (VERSÃO CORRIGIDA)
+    // Botão de Ativar/Salvar Alarme
     document.getElementById('save-alarm-btn').addEventListener('click', async () => {
+        const timeValue = document.getElementById('alarm-time').value;
+        
+        if (!timeValue) {
+            alert("Por favor, escolha um horário primeiro!");
+            return;
+        }
+
         try {
-            // Registra o Service Worker explicitamente para evitar o erro de conexão
+            // Registra o Service Worker
             const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
             
+            // Pede permissão
             const permission = await Notification.requestPermission();
             
             if (permission === 'granted') {
-                const currentToken = await getToken(messaging, { 
-                    vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A',
-                    serviceWorkerRegistration: reg // Força a conexão correta
-                });
+                // AGUARDA o Service Worker ficar ativo antes de enviar o postMessage
+                await navigator.serviceWorker.ready;
 
-                if (currentToken) {
-                    console.log("Token gerado:", currentToken);
-                    document.getElementById('alarm-status').textContent = "Notificações Reais Ativadas! 💜";
-                    alert("Pronto! Agora o MotivArmy pode te enviar mensagens.");
+                if (navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: 'SET_ALARM',
+                        time: timeValue
+                    });
+
+                    document.getElementById('alarm-status').textContent = `Alarme definido para às ${timeValue}! 💜`;
+                    alert(`Sucesso! Você receberá uma motivação todo dia às ${timeValue}.`);
+                } else {
+                    // Se não houver controlador (comum no primeiro acesso), recarrega para ativar
+                    window.location.reload();
                 }
-            } else {
-                alert("Você precisa permitir as notificações!");
             }
         } catch (err) {
-            console.error('Erro de conexão:', err);
-            alert("Erro ao conectar com Firebase. Tente limpar o cache do navegador.");
+            console.error('Erro ao configurar alarme:', err);
+            alert("Erro técnico. Tente atualizar a página.");
         }
     });
 });
 
-// Escuta mensagens com o app aberto
+// Escuta mensagens do Firebase com o app aberto
 onMessage(messaging, (payload) => {
     alert(`💜 BTS diz: ${payload.notification.body}`);
 });
