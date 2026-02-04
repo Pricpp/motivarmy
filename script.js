@@ -52,25 +52,31 @@ window.addEventListener('DOMContentLoaded', () => {
     // Botão de Nova Mensagem
     document.getElementById('new-quote-btn').addEventListener('click', generateNewMessage);
 
-    // Botão de Ativar Notificações Push
+    // Botão de Ativar Notificações Push (VERSÃO CORRIGIDA)
     document.getElementById('save-alarm-btn').addEventListener('click', async () => {
-        const permission = await Notification.requestPermission();
-        if (permission === 'granted') {
-            try {
+        try {
+            // Registra o Service Worker explicitamente para evitar o erro de conexão
+            const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js');
+            
+            const permission = await Notification.requestPermission();
+            
+            if (permission === 'granted') {
                 const currentToken = await getToken(messaging, { 
-                    vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A' 
+                    vapidKey: 'BI9RSO2EDyLlc_zHKHx4LWHd3o6Ie_Be4WUJgpI-iDmRsBfSlBTJmiyQ88BSOz71hJ6y0p34eVttDoZ12hGCq0A',
+                    serviceWorkerRegistration: reg // Força a conexão correta
                 });
+
                 if (currentToken) {
                     console.log("Token gerado:", currentToken);
                     document.getElementById('alarm-status').textContent = "Notificações Reais Ativadas! 💜";
-                    alert("Pronto! Agora o Firebase pode te enviar mensagens.");
+                    alert("Pronto! Agora o MotivArmy pode te enviar mensagens.");
                 }
-            } catch (err) {
-                console.error('Erro ao obter token:', err);
-                alert("Erro ao conectar com Firebase. Verifique o console.");
+            } else {
+                alert("Você precisa permitir as notificações!");
             }
-        } else {
-            alert("Você precisa permitir as notificações!");
+        } catch (err) {
+            console.error('Erro de conexão:', err);
+            alert("Erro ao conectar com Firebase. Tente limpar o cache do navegador.");
         }
     });
 });
